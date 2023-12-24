@@ -48,11 +48,11 @@ This module is not AWS specific but this helps guide a good naming convention:
 - 255 (sns topic, dynamo table) 
 
 # Environment
-production = prd
-staging = stg
-development = dev
-performance = prf
-security = sec
+- production = prd
+- staging = stg
+- development = dev
+- performance = prf
+- security = sec
 
 # Region Replacement
 Use supported AZ IDs.

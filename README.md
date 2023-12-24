@@ -58,8 +58,8 @@ This module is not AWS specific but this helps guide a good naming convention:
 Use supported AZ IDs.
 https://docs.aws.amazon.com/workspaces/latest/adminguide/azs-workspaces.html
 
-us-east-1 = use1
-eu-central-1 = euc1
+- us-east-1 = use1
+- eu-central-1 = euc1
 
 # KMS Alias
 Sometimes you need a slash based id as well.  We support this through the

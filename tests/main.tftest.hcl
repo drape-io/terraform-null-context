@@ -172,8 +172,44 @@ run "test_tags" {
 
   assert {
     condition = sort(keys(output.tags)) == sort([
-        "Group", "Tenant", "Scope", "Env", "Owner"
+      "Group", "Tenant", "Scope", "Env", "Owner"
     ])
     error_message = "Tags were invalid ${join(",", keys(output.tags))}"
+  }
+}
+
+run "test_can_reuse_context" {
+  variables {
+    context = {
+      group  = "drape"
+      tenant = "customer"
+      scope  = "k8s"
+      env    = "prd"
+      attributes = [
+        "boom",
+        "shaka",
+        "laka",
+      ]
+    }
+  }
+
+  assert {
+    condition     = output.context["group"] == "drape"
+    error_message = "group wasn't in the context"
+  }
+
+  assert {
+    condition     = output.context["tenant"] == "customer"
+    error_message = "tenant wasn't in the context"
+  }
+
+  assert {
+    condition     = output.context["env"] == "prd"
+    error_message = "env wasn't in the context"
+  }
+
+  assert {
+    condition     = sort(values(output.context["tags"])) == sort(["customer", "drape", "k8s", "prd"])
+    error_message = "Group wasn't in context tags keys: ${join(",", keys(output.context["tags"]))} values: ${join(",", values(output.context["tags"]))}"
   }
 }

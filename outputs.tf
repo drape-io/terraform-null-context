@@ -42,3 +42,8 @@ output "tags" {
   value       = local.return.enabled ? local.return.tags : {}
   description = "Tags for the context"
 }
+
+output "context" {
+  value       = local.return.context
+  description = "The full context object if you want to pass it to another module"
+}

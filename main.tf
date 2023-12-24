@@ -1,20 +1,19 @@
 locals {
+  attributes_list = compact(distinct(
+    concat(
+      coalesce(lookup(var.context, "attributes", []), []),
+      coalesce(var.attributes, [])
+    )
+  ))
   defaults = {
-    enabled = var.enabled == null ? lookup(var.context, "enabled", true) : var.enabled
-    group   = var.group == null ? lookup(var.context, "group", "") : var.group
-    tenant  = var.tenant == null ? lookup(var.context, "tenant", "") : var.tenant
-    env     = var.env == null ? lookup(var.context, "env", "") : var.env
-    scope   = var.scope == null ? lookup(var.context, "scope", "") : var.scope
-    tags    = var.tags == null ? lookup(var.context, "tags", {}) : var.tags
-
-    attributes = join("-", compact(distinct(
-      concat(
-        coalesce(lookup(var.context, "attributes", []), []),
-        coalesce(var.attributes, [])
-      )
-    )))
+    enabled    = var.enabled == null ? lookup(var.context, "enabled", true) : var.enabled
+    group      = var.group == null ? lookup(var.context, "group", "") : var.group
+    tenant     = var.tenant == null ? lookup(var.context, "tenant", "") : var.tenant
+    env        = var.env == null ? lookup(var.context, "env", "") : var.env
+    scope      = var.scope == null ? lookup(var.context, "scope", "") : var.scope
+    tags       = var.tags == null ? lookup(var.context, "tags", {}) : var.tags
+    attributes = join("-", local.attributes_list)
   }
-
   parts_order = ["group", "tenant", "env", "scope", "attributes"]
   provided_parts = [
     for p in local.parts_order : local.defaults[p] if length(local.defaults[p]) > 0
@@ -66,12 +65,24 @@ resource "random_string" "hash_for_id" {
 
 locals {
   return = {
-    enabled                      = local.defaults.enabled
-    group                        = local.defaults.group
-    tenant                       = local.defaults.tenant
-    env                          = local.defaults.env
-    scope                        = local.defaults.scope
-    tags                         = local.tags
+    enabled    = local.defaults.enabled
+    group      = local.defaults.group
+    tenant     = local.defaults.tenant
+    env        = local.defaults.env
+    scope      = local.defaults.scope
+    tags       = local.tags
+    attributes = local.attributes_list
+    # We repeat this so we can pass the context to other modules but we keep
+    # the ones above so they are nicer to access.
+    context = {
+      enabled    = local.defaults.enabled
+      group      = local.defaults.group
+      tenant     = local.defaults.tenant
+      env        = local.defaults.env
+      scope      = local.defaults.scope
+      attributes = local.attributes_list
+      tags       = local.tags
+    }
     id_full                      = local.id_full
     id_slash_full                = local.id_slash_full
     id_truncated_fourty          = local.id_truncated_fourty

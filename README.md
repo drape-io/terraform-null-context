@@ -27,15 +27,15 @@ With the following format:
 
 Real world examples:
 
-- Only required fields (group, env, name):
+- group, env, name:
     ```
     drape-prd-primary-rds
     ```
 
 - All fields
-  ```
-  drape-customer1-prd-use1-authsvc-primary-rds
-  ```
+    ```
+    drape-customer1-prd-use1-authsvc-primary-rds
+    ```
 
 ## AWS Limits
 This module is not AWS specific but this helps guide a good naming convention:
@@ -61,8 +61,9 @@ https://docs.aws.amazon.com/workspaces/latest/adminguide/azs-workspaces.html
 us-east-1 = use1
 eu-central-1 = euc1
 
-# TODO:
-need to support kms alias as well...
+# KMS Alias
+Sometimes you need a slash based id as well.  We support this through the
+output `id_slash_full`.
 
 ```
 alias/drape/prod/lambda

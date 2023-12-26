@@ -74,26 +74,32 @@ run "test_id_slash_full" {
 }
 
 
-run "test_too_long_of_id" {
+run "test_too_long_of_id_fourty" {
   variables {
     group  = "groupy-mcgrouperson-abcdefghijklmnopqrstuvwxyz"
     tenant = "customer-mccustomerson-abcdefghijklmnopqrstuvwxyz"
     scope  = "scoper-mcscoperson-abcdefghijklmnopqrstuvwxyz"
     env    = "production-mcproductionerson-abcdefghijklmnopqrstuvwxyz"
+    max_id_length = 40
   }
 
   assert {
-    condition     = length(output.id_truncated_fourty_hash) == 40
+    condition     = length(output.id_truncated_hash) == 40
     error_message = "Truncation to fourty works"
   }
+}
 
-  assert {
-    condition     = length(output.id_truncated_sixty_hash) == 60
-    error_message = "Truncation to sixty works"
+run "test_too_long_of_id_one_twenty" {
+  variables {
+    group  = "groupy-mcgrouperson-abcdefghijklmnopqrstuvwxyz"
+    tenant = "customer-mccustomerson-abcdefghijklmnopqrstuvwxyz"
+    scope  = "scoper-mcscoperson-abcdefghijklmnopqrstuvwxyz"
+    env    = "production-mcproductionerson-abcdefghijklmnopqrstuvwxyz"
+    max_id_length = 120
   }
 
   assert {
-    condition     = length(output.id_truncated_one_twenty_hash) == 120
+    condition     = length(output.id_truncated_hash) == 120
     error_message = "Truncation to one twenty works"
   }
 }

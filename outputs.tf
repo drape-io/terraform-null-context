@@ -18,24 +18,14 @@ output "id_slash_full" {
   description = "The full ID with slashes"
 }
 
-output "id_truncated_fourty" {
-  value       = local.return.enabled ? local.return.id_truncated_fourty : ""
-  description = "The full ID truncated to 32 chars, leaving 8 for a hash"
+output "id_truncated" {
+  value       = local.return.enabled ? local.return.id_truncated : ""
+  description = "The full ID truncated to `max_id_length` chars, leaving 8 for a hash"
 }
 
-output "id_truncated_fourty_hash" {
-  value       = local.return.enabled ? local.return.id_truncated_fourty_hash : ""
+output "id_truncated_hash" {
+  value       = local.return.enabled ? local.return.id_truncated_hash : ""
   description = "The full ID truncated with a hash"
-}
-
-output "id_truncated_sixty_hash" {
-  value       = local.return.enabled ? local.return.id_truncated_sixty_hash : ""
-  description = "The full ID truncated to 52 chars, leaving 8 for a hash"
-}
-
-output "id_truncated_one_twenty_hash" {
-  value       = local.return.enabled ? local.return.id_truncated_one_twenty_hash : ""
-  description = "The full ID truncated to 112 chars, leaving 8 for a hash"
 }
 
 output "tags" {

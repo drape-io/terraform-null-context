@@ -37,7 +37,7 @@ locals {
   tags_order = ["group", "tenant", "env", "scope"]
   tags = merge({
     for k in local.tags_order : title(k) => local.defaults[k]
-  }, local.defaults.tags, {
+    }, local.defaults.tags, {
     ManagedBy = "Terraform"
   })
 }
@@ -50,16 +50,9 @@ check "validate_id_parts" {
 }
 
 locals {
-  hash_length = 8
-
-  id_fourty_truncation_length     = local.id_full_length > 40 ? local.id_full_length - (40 - local.hash_length) : 0
-  id_sixty_truncation_length      = local.id_full_length > 60 ? local.id_full_length - (60 - local.hash_length) : 0
-  id_one_twenty_truncation_length = local.id_full_length > 120 ? local.id_full_length - (120 - local.hash_length) : 0
-
-  id_truncated_fourty     = substr(local.id_full, 0, local.id_full_length - local.id_fourty_truncation_length)
-  id_truncated_sixty      = substr(local.id_full, 0, local.id_full_length - local.id_sixty_truncation_length)
-  id_truncated_one_twenty = substr(local.id_full, 0, local.id_full_length - local.id_one_twenty_truncation_length)
-
+  hash_length          = 8
+  id_truncation_length = local.id_full_length > var.max_id_length ? local.id_full_length - (var.max_id_length - local.hash_length) : 0
+  id_truncated         = substr(local.id_full, 0, local.id_full_length - local.id_truncation_length)
 }
 
 
@@ -91,13 +84,9 @@ locals {
       attributes = local.attributes_list
       tags       = local.tags
     }
-    id_full                      = local.id_full
-    id_slash_full                = local.id_slash_full
-    id_truncated_fourty          = local.id_truncated_fourty
-    id_truncated_sixty           = local.id_truncated_sixty
-    id_truncated_one_twenty      = local.id_truncated_one_twenty
-    id_truncated_fourty_hash     = local.id_fourty_truncation_length > 0 ? "${local.id_truncated_fourty}-${resource.random_string.hash_for_id.id}" : local.id_full
-    id_truncated_sixty_hash      = local.id_sixty_truncation_length > 0 ? "${local.id_truncated_sixty}-${resource.random_string.hash_for_id.id}" : local.id_full
-    id_truncated_one_twenty_hash = local.id_one_twenty_truncation_length > 0 ? "${local.id_truncated_one_twenty}-${resource.random_string.hash_for_id.id}" : local.id_full
+    id_full           = local.id_full
+    id_slash_full     = local.id_slash_full
+    id_truncated      = local.id_truncated
+    id_truncated_hash = local.id_truncation_length > 0 ? "${local.id_truncated}-${resource.random_string.hash_for_id.id}" : local.id_full
   }
 }

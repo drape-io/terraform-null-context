@@ -95,3 +95,13 @@ variable "context" {
     used to seed the module with labels from another context.
   EOT
 }
+
+variable "max_id_length" {
+  type        = number
+  default     = 255
+  description = <<-EOT
+    This will define a max length we want for the generated ID and then generate
+    a truncated one with a hash.  For example if you are generating S3 buckets
+    you will want to limit it to 63 characters.
+    EOT
+}

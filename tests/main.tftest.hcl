@@ -213,3 +213,27 @@ run "test_can_reuse_context" {
     error_message = "Group wasn't in context tags keys: ${join(",", keys(output.context["tags"]))} values: ${join(",", values(output.context["tags"]))}"
   }
 }
+
+run "test_can_reuse_and_override_context" {
+  variables {
+    tenant = "customer2"
+    scope = ""
+
+    context = {
+      group  = "drape"
+      tenant = "customer"
+      scope  = "k8s"
+      env    = "prd"
+      attributes = [
+        "boom",
+        "shaka",
+        "laka",
+      ]
+    }
+  }
+
+  assert {
+    condition     = output.id_full == "drape-customer2-prd-boom-shaka-laka"
+    error_message = "group wasn't in the context"
+  }
+}

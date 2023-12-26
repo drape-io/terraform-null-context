@@ -6,7 +6,7 @@ locals {
     )
   ))
   defaults = {
-    enabled    = var.enabled == null ? lookup(var.context, "enabled", true) : var.enabled
+    enabled    = var.enabled == null ? var.context.enabled : var.enabled
     group      = var.group == null ? lookup(var.context, "group", "") : var.group
     tenant     = var.tenant == null ? lookup(var.context, "tenant", "") : var.tenant
     env        = var.env == null ? lookup(var.context, "env", "") : var.env
@@ -15,8 +15,14 @@ locals {
     attributes = join("-", local.attributes_list)
   }
   parts_order = ["group", "tenant", "env", "scope", "attributes"]
+
+  # The values still could be null when defining defaults so we normalize them
+  # to empty strings here.
+  formatted = { for k in local.parts_order : k =>
+    local.defaults[k] == null ? "" : local.defaults[k]
+  }
   provided_parts = [
-    for p in local.parts_order : local.defaults[p] if length(local.defaults[p]) > 0
+    for p in local.parts_order : local.formatted[p] if length(local.formatted[p]) > 0
   ]
 
   id_full        = join("-", local.provided_parts)

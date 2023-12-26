@@ -37,7 +37,9 @@ locals {
   tags_order = ["group", "tenant", "env", "scope"]
   tags = merge({
     for k in local.tags_order : title(k) => local.defaults[k]
-  }, local.defaults.tags)
+  }, local.defaults.tags, {
+    ManagedBy = "Terraform"
+  })
 }
 
 check "validate_id_parts" {

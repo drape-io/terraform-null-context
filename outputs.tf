@@ -1,3 +1,8 @@
+output "enabled" {
+  value       = local.return.enabled
+  description = "If it was enabled or not"
+}
+
 output "group" {
   value       = local.return.enabled ? local.return.group : ""
   description = "The defined group"

@@ -5,8 +5,9 @@ locals {
       coalesce(var.attributes, [])
     )
   ))
+  context_enabled = lookup(var.context, "enabled", true) == null ? true : var.context.enabled
   defaults = {
-    enabled    = var.enabled == null ? var.context.enabled : var.enabled
+    enabled    = var.enabled == null ? local.context_enabled : var.enabled
     group      = var.group == null ? lookup(var.context, "group", "") : var.group
     tenant     = var.tenant == null ? lookup(var.context, "tenant", "") : var.tenant
     env        = var.env == null ? lookup(var.context, "env", "") : var.env
@@ -14,6 +15,7 @@ locals {
     tags       = var.tags == null ? lookup(var.context, "tags", {}) : var.tags
     attributes = join("-", local.attributes_list)
   }
+
   parts_order = ["group", "tenant", "env", "scope", "attributes"]
 
   # The values still could be null when defining defaults so we normalize them

@@ -1,6 +1,6 @@
 variable "enabled" {
   type        = bool
-  default     = true
+  default     = null
   nullable    = true
   description = "Prevent the module from creating any resources if disabled."
 }

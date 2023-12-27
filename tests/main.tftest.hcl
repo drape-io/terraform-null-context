@@ -243,3 +243,40 @@ run "test_can_reuse_and_override_context" {
     error_message = "group wasn't in the context"
   }
 }
+
+run "test_enabled_flag_false" {
+  variables {
+    tenant = "customer2"
+    enabled = false
+  }
+
+  assert {
+    condition     = output.enabled == false
+    error_message = "enabled should've been false"
+  }
+}
+
+run "test_enabled_flag" {
+  variables {
+    tenant = "customer2"
+  }
+
+  assert {
+    condition     = output.enabled == true
+    error_message = "enabled should've been true"
+  }
+}
+
+run "test_enabled_through_context" {
+  variables {
+    tenant = "customer2"
+    context = {
+        enabled = false
+    }
+  }
+
+  assert {
+    condition     = output.enabled == false
+    error_message = "enabled should've been false"
+  }
+}

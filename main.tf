@@ -59,6 +59,8 @@ locals {
 
 
 resource "random_string" "hash_for_id" {
+  count = local.defaults.enabled ? 1 : 0
+
   keepers = {
     full_id = local.id_full
   }
@@ -89,6 +91,6 @@ locals {
     id_full           = local.id_full
     id_slash_full     = local.id_slash_full
     id_truncated      = local.id_truncated
-    id_truncated_hash = local.id_truncation_length > 0 ? "${local.id_truncated}-${resource.random_string.hash_for_id.id}" : local.id_full
+    id_truncated_hash = local.id_truncation_length > 0 ? "${local.id_truncated}-${resource.random_string.hash_for_id[0].id}" : local.id_full
   }
 }

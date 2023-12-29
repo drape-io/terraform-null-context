@@ -143,7 +143,7 @@ run "test_tags" {
     scope  = "k8s"
     env    = "prd"
     tags = {
-      "Owner" : "group-sre@test.com",
+      "owner" : "group-sre@test.com",
     }
     attributes = [
       "boom",
@@ -152,35 +152,97 @@ run "test_tags" {
     ]
   }
   assert {
+    condition     = output.tags["group"] == "drape"
+    error_message = "Group wasn't in tags"
+  }
+
+  assert {
+    condition     = output.tags["tenant"] == "customer"
+    error_message = "Tenant wasn't in tags"
+  }
+
+  assert {
+    condition     = output.tags["scope"] == "k8s"
+    error_message = "Scope wasn't in tags"
+  }
+
+  assert {
+    condition     = output.tags["environment"] == "production"
+    error_message = "Env wasn't in tags"
+  }
+
+  assert {
+    condition     = output.tags["owner"] == "group-sre@test.com"
+    error_message = "Additional tags weren't in the tags output, keys: ${join(",", keys(output.tags))}"
+  }
+
+  assert {
+    condition = sort(keys(output.tags)) == sort([
+      "group", "tenant", "scope", "environment", "owner", "managed-by"
+    ])
+    error_message = "Tags were invalid, keys: ${join(",", keys(output.tags))}"
+  }
+}
+
+run "test_tags_casing_upper" {
+  variables {
+    group  = "drape"
+    tenant = "customer"
+    scope  = "k8s"
+    env    = "prd"
+    tag_key_case = "upper"
+    tag_value_case = "upper"
+
+    tags = {
+      "owner" : "group-sre@test.com",
+      "SERvICE": "AuthSvc"
+    }
+    attributes = [
+      "boom",
+      "shaka",
+      "laka",
+    ]
+  }
+
+  assert {
+    condition     = output.tags["GROUP"] == "DRAPE"
+    error_message = "GROUP wasn't in tags"
+  }
+
+  assert {
+    condition     = output.tags["SERVICE"] == "AUTHSVC"
+    error_message = "SERVICE wasn't in tags"
+  }
+}
+
+run "test_tags_casing_title" {
+  variables {
+    group  = "drape"
+    tenant = "customer"
+    scope  = "k8s"
+    env    = "prd"
+    tag_key_case = "title"
+    tag_value_case = null
+
+    tags = {
+      "owner" : "group-sre@test.com",
+      "SERvICE": "AUTHSVC"
+    }
+    attributes = [
+      "boom",
+      "shaka",
+      "laka",
+    ]
+  }
+
+  assert {
     condition     = output.tags["Group"] == "drape"
     error_message = "Group wasn't in tags"
   }
 
   assert {
-    condition     = output.tags["Tenant"] == "customer"
-    error_message = "Tenant wasn't in tags"
-  }
-
-  assert {
-    condition     = output.tags["Scope"] == "k8s"
-    error_message = "Scope wasn't in tags"
-  }
-
-  assert {
-    condition     = output.tags["Env"] == "prd"
-    error_message = "Env wasn't in tags"
-  }
-
-  assert {
-    condition     = output.tags["Owner"] == "group-sre@test.com"
-    error_message = "Additional tags weren't in the tags output"
-  }
-
-  assert {
-    condition = sort(keys(output.tags)) == sort([
-      "Group", "Tenant", "Scope", "Env", "Owner", "ManagedBy"
-    ])
-    error_message = "Tags were invalid ${join(",", keys(output.tags))}"
+    condition     = output.tags["Service"] == "AUTHSVC"
+    error_message = "Service wasn't in tags"
   }
 }
 
@@ -215,7 +277,7 @@ run "test_can_reuse_context" {
   }
 
   assert {
-    condition     = sort(values(output.context["tags"])) == sort(["customer", "drape", "k8s", "prd", "Terraform"])
+    condition     = sort(values(output.context["tags"])) == sort(["customer", "drape", "k8s", "production", "terraform"])
     error_message = "Group wasn't in context tags keys: ${join(",", keys(output.context["tags"]))} values: ${join(",", values(output.context["tags"]))}"
   }
 }

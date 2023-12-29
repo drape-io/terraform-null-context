@@ -81,13 +81,15 @@ variable "tags" {
 
 variable "context" {
   type = object({
-    enabled    = optional(bool)
-    group      = optional(string)
-    tenant     = optional(string)
-    env        = optional(string)
-    scope      = optional(string)
-    attributes = optional(list(string))
-    tags       = optional(map(string))
+    enabled        = optional(bool)
+    group          = optional(string)
+    tenant         = optional(string)
+    env            = optional(string)
+    scope          = optional(string)
+    attributes     = optional(list(string))
+    tags           = optional(map(string))
+    tag_key_case   = optional(string)
+    tag_value_case = optional(string)
   })
   default     = {}
   description = <<-EOT
@@ -103,5 +105,24 @@ variable "max_id_length" {
     This will define a max length we want for the generated ID and then generate
     a truncated one with a hash.  For example if you are generating S3 buckets
     you will want to limit it to 63 characters.
+    EOT
+}
+
+variable "tag_key_case" {
+  type        = string
+  default     = "lower"
+  description = <<-EOT
+    Since cloud providers tags are not case-insensitive we should enforce a
+    consistent casing for all keys.
+    EOT
+}
+
+variable "tag_value_case" {
+  type        = string
+  default     = "lower"
+  nullable    = true
+  description = <<-EOT
+    Since cloud providers tags are not case-insensitive we should enforce a
+    consistent casing for all values.
     EOT
 }

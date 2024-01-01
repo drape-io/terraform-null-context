@@ -342,3 +342,20 @@ run "test_enabled_through_context" {
     error_message = "enabled should've been false"
   }
 }
+
+run "test_can_override_tags_from_context" {
+  variables {
+    tenant = "customer2"
+    context = {
+        tags = {
+            scope = "foo"
+            tenant = "bar"
+        }
+    }
+  }
+
+  assert {
+    condition     = output.tags["scope"] == "foo"
+    error_message = "Scope wasn't included in tags"
+  }
+}

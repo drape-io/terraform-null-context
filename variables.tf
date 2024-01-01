@@ -72,7 +72,8 @@ variable "attributes" {
 
 variable "tags" {
   type        = map(string)
-  default     = {}
+  default     = null
+  nullable    = true
   description = <<-EOT
     Define tags on the context so they can be used on each resource.
     (For Example: `{'Owner': 'group-sre@test.com'}`)

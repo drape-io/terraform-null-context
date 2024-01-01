@@ -359,3 +359,14 @@ run "test_can_override_tags_from_context" {
     error_message = "Scope wasn't included in tags"
   }
 }
+
+run "dont_send_tags_that_are_empty" {
+  variables {
+    tenant = "customer2"
+  }
+
+  assert {
+    condition = !contains(values(output.tags), "")
+    error_message = "Tags were invalid, keys: ${join(",", keys(output.tags))}, values: ${join(",", values(output.tags))}"
+  }
+}

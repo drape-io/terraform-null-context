@@ -70,6 +70,9 @@ locals {
     local.tag_value_case == "upper" ? upper(local.generated_tags[k]) :
     local.tag_value_case == "title" ? title(local.generated_tags[k]) :
     local.generated_tags[k]
+    # S3 Buckets will not store any tags in the map if one of them has
+    # an empty value
+    if local.generated_tags[k] != ""
   }
 }
 

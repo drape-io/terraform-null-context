@@ -2,6 +2,17 @@
 A utility module for managing naming and tagging of resources through a shared
 context.
 
+[Terraform Registry](https://registry.terraform.io/modules/drape-io/context/null/latest)
+
+## Basic Usage
+
+```hcl
+module "context" {
+  source  = "drape-io/context/null"
+  version = "0.0.10"
+}
+```
+
 This utility will allow you to generate unique resources and enforce a standard
 naming convention across your resources.  The convention will be:
 

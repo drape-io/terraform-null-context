@@ -30,22 +30,22 @@ The fields available are:
 | scope              | Application name or some other unique scope for resources|
 | attributes         | List of additional attributes to uniquely identify the resources  |
 
-With the following format:
+With the following format (delimiter defaults to `-` and is configurable):
 
 ```
-{group}-{[tenant]}-{env}-{[region]}-{[scope]}-{[attributes]}-{name}
+{group}-{[tenant]}-{env}-{[scope]}-{[attributes]}
 ```
 
 Real world examples:
 
-- group, env, name:
+- group and env:
     ```
-    drape-prd-primary-rds
+    drape-prd
     ```
 
-- All fields
+- All fields:
     ```
-    drape-customer1-prd-use1-authsvc-primary-rds
+    drape-customer1-prd-authsvc-primary
     ```
 
 ## AWS Limits
@@ -85,17 +85,17 @@ alias/drape/dev/sontek/lambda
 
 # Examples
 ```
--> drape-prod-eu-central-1-k8s-grafana-pg-backup
-     ^     ^     ^          ^          ^
-   group  env  region    scope     name
+-> drape-prd-k8s
+     ^    ^    ^
+   group env  scope
 
--> drape-sontek-dev-us-east-1-k8s-grafana-pg-backup
-     ^     ^     ^        ^     ^          ^
-   group tenant env    region  scope      name
+-> drape-sontek-dev-k8s
+     ^     ^     ^    ^
+   group tenant env  scope
 
--> drape-prod-k8s-ingress-a
-     ^    ^     ^       ^
-   group env  scope    name
+-> drape-prd-k8s-primary-replica
+     ^    ^    ^       ^
+   group env  scope  attributes
 ```
 
 ## Inputs
@@ -104,14 +104,15 @@ alias/drape/dev/sontek/lambda
 |------|-------------|------|---------|:--------:|
 | <a name="input_attributes"></a> [attributes](#input\_attributes) | Additional attributes can be added to create more uniqueness when in the ID.<br>They are appended to the end of the ID. | `list(string)` | `[]` | no |
 | <a name="input_context"></a> [context](#input\_context) | Used to pass an object of any of the variables used to this module.  It is<br>used to seed the module with labels from another context. | <pre>object({<br>    enabled        = optional(bool)<br>    group          = optional(string)<br>    tenant         = optional(string)<br>    env            = optional(string)<br>    scope          = optional(string)<br>    attributes     = optional(list(string))<br>    tags           = optional(map(string))<br>    tag_key_case   = optional(string)<br>    tag_value_case = optional(string)<br>  })</pre> | `{}` | no |
+| <a name="input_delimiter"></a> [delimiter](#input\_delimiter) | Delimiter to use between ID parts. | `string` | `"-"` | no |
 | <a name="input_enabled"></a> [enabled](#input\_enabled) | Prevent the module from creating any resources if disabled. | `bool` | `null` | no |
 | <a name="input_env"></a> [env](#input\_env) | Should be the type of environment for the resource (prd, stg, dev, prf, sec) | `string` | `null` | no |
 | <a name="input_group"></a> [group](#input\_group) | A unique identifier for your resources.  This could be your organization<br>name or an abbreviation | `string` | `null` | no |
 | <a name="input_max_id_length"></a> [max\_id\_length](#input\_max\_id\_length) | This will define a max length we want for the generated ID and then generate<br>a truncated one with a hash.  For example if you are generating S3 buckets<br>you will want to limit it to 63 characters. | `number` | `255` | no |
 | <a name="input_scope"></a> [scope](#input\_scope) | Scope down the resource to a specific application or service in your<br>environment | `string` | `null` | no |
-| <a name="input_tag_key_case"></a> [tag\_key\_case](#input\_tag\_key\_case) | Since cloud providers tags are not case-insensitive we should enforce a<br>consistent casing for all keys. | `string` | `"lower"` | no |
-| <a name="input_tag_value_case"></a> [tag\_value\_case](#input\_tag\_value\_case) | Since cloud providers tags are not case-insensitive we should enforce a<br>consistent casing for all values. | `string` | `"lower"` | no |
-| <a name="input_tags"></a> [tags](#input\_tags) | Define tags on the context so they can be used on each resource.<br>(For Example: `{'Owner': 'group-sre@test.com'}`) | `map(string)` | `{}` | no |
+| <a name="input_tag_key_case"></a> [tag\_key\_case](#input\_tag\_key\_case) | Since cloud providers tags are not case-insensitive we should enforce a<br>consistent casing for all keys.  Defaults to "lower" when not set via variable or context. | `string` | `null` | no |
+| <a name="input_tag_value_case"></a> [tag\_value\_case](#input\_tag\_value\_case) | Since cloud providers tags are not case-insensitive we should enforce a<br>consistent casing for all values.  Set to null to preserve original casing. | `string` | `"lower"` | no |
+| <a name="input_tags"></a> [tags](#input\_tags) | Define tags on the context so they can be used on each resource.<br>(For Example: `{'Owner': 'group-sre@test.com'}`) | `map(string)` | `null` | no |
 | <a name="input_tenant"></a> [tenant](#input\_tenant) | In a multi-tenant environment you can use this to identify which resources<br>go where. You can also use this to link resources to individual developers<br>in sandboxes. | `string` | `null` | no |
 
 ## Outputs

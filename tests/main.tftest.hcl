@@ -76,10 +76,10 @@ run "test_id_slash_full" {
 
 run "test_too_long_of_id_fourty" {
   variables {
-    group  = "groupy-mcgrouperson-abcdefghijklmnopqrstuvwxyz"
-    tenant = "customer-mccustomerson-abcdefghijklmnopqrstuvwxyz"
-    scope  = "scoper-mcscoperson-abcdefghijklmnopqrstuvwxyz"
-    env    = "production-mcproductionerson-abcdefghijklmnopqrstuvwxyz"
+    group         = "groupy-mcgrouperson-abcdefghijklmnopqrstuvwxyz"
+    tenant        = "customer-mccustomerson-abcdefghijklmnopqrstuvwxyz"
+    scope         = "scoper-mcscoperson-abcdefghijklmnopqrstuvwxyz"
+    env           = "production-mcproductionerson-abcdefghijklmnopqrstuvwxyz"
     max_id_length = 40
   }
 
@@ -91,10 +91,10 @@ run "test_too_long_of_id_fourty" {
 
 run "test_too_long_of_id_one_twenty" {
   variables {
-    group  = "groupy-mcgrouperson-abcdefghijklmnopqrstuvwxyz"
-    tenant = "customer-mccustomerson-abcdefghijklmnopqrstuvwxyz"
-    scope  = "scoper-mcscoperson-abcdefghijklmnopqrstuvwxyz"
-    env    = "production-mcproductionerson-abcdefghijklmnopqrstuvwxyz"
+    group         = "groupy-mcgrouperson-abcdefghijklmnopqrstuvwxyz"
+    tenant        = "customer-mccustomerson-abcdefghijklmnopqrstuvwxyz"
+    scope         = "scoper-mcscoperson-abcdefghijklmnopqrstuvwxyz"
+    env           = "production-mcproductionerson-abcdefghijklmnopqrstuvwxyz"
     max_id_length = 120
   }
 
@@ -186,16 +186,16 @@ run "test_tags" {
 
 run "test_tags_casing_upper" {
   variables {
-    group  = "drape"
-    tenant = "customer"
-    scope  = "k8s"
-    env    = "prd"
-    tag_key_case = "upper"
+    group          = "drape"
+    tenant         = "customer"
+    scope          = "k8s"
+    env            = "prd"
+    tag_key_case   = "upper"
     tag_value_case = "upper"
 
     tags = {
       "owner" : "group-sre@test.com",
-      "SERvICE": "AuthSvc"
+      "SERvICE" : "AuthSvc"
     }
     attributes = [
       "boom",
@@ -217,16 +217,16 @@ run "test_tags_casing_upper" {
 
 run "test_tags_casing_title" {
   variables {
-    group  = "drape"
-    tenant = "customer"
-    scope  = "k8s"
-    env    = "prd"
-    tag_key_case = "title"
+    group          = "drape"
+    tenant         = "customer"
+    scope          = "k8s"
+    env            = "prd"
+    tag_key_case   = "title"
     tag_value_case = null
 
     tags = {
       "owner" : "group-sre@test.com",
-      "SERvICE": "AUTHSVC"
+      "SERvICE" : "AUTHSVC"
     }
     attributes = [
       "boom",
@@ -285,7 +285,7 @@ run "test_can_reuse_context" {
 run "test_can_reuse_and_override_context" {
   variables {
     tenant = "customer2"
-    scope = ""
+    scope  = ""
 
     context = {
       group  = "drape"
@@ -308,7 +308,7 @@ run "test_can_reuse_and_override_context" {
 
 run "test_enabled_flag_false" {
   variables {
-    tenant = "customer2"
+    tenant  = "customer2"
     enabled = false
   }
 
@@ -333,7 +333,7 @@ run "test_enabled_through_context" {
   variables {
     tenant = "customer2"
     context = {
-        enabled = false
+      enabled = false
     }
   }
 
@@ -347,10 +347,10 @@ run "test_can_override_tags_from_context" {
   variables {
     tenant = "customer2"
     context = {
-        tags = {
-            scope = "foo"
-            tenant = "bar"
-        }
+      tags = {
+        scope  = "foo"
+        tenant = "bar"
+      }
     }
   }
 
@@ -366,7 +366,81 @@ run "dont_send_tags_that_are_empty" {
   }
 
   assert {
-    condition = !contains(values(output.tags), "")
+    condition     = !contains(values(output.tags), "")
     error_message = "Tags were invalid, keys: ${join(",", keys(output.tags))}, values: ${join(",", values(output.tags))}"
+  }
+}
+
+run "test_tag_key_case_inherited_from_context" {
+  variables {
+    group = "drape"
+    env   = "prd"
+    context = {
+      tag_key_case = "upper"
+    }
+  }
+
+  assert {
+    condition     = contains(keys(output.tags), "GROUP")
+    error_message = "tag_key_case should be inherited from context"
+  }
+}
+
+run "test_tag_value_case_null_preserves_original" {
+  variables {
+    group          = "drape"
+    env            = "prd"
+    tag_value_case = null
+    tags = {
+      "owner" : "SRE-Team"
+    }
+  }
+
+  assert {
+    condition     = output.tags["owner"] == "SRE-Team"
+    error_message = "null tag_value_case should preserve original casing"
+  }
+}
+
+run "test_tag_casing_variable_overrides_context" {
+  variables {
+    group        = "drape"
+    env          = "prd"
+    tag_key_case = "lower"
+    context = {
+      tag_key_case = "upper"
+    }
+  }
+
+  assert {
+    condition     = output.tags["group"] == "drape"
+    error_message = "Explicit tag_key_case should override context"
+  }
+}
+
+run "test_custom_delimiter" {
+  variables {
+    group     = "drape"
+    tenant    = "customer"
+    scope     = "k8s"
+    env       = "prd"
+    delimiter = "_"
+  }
+
+  assert {
+    condition     = output.id_full == "drape_customer_prd_k8s"
+    error_message = "Custom delimiter should be used in id_full"
+  }
+}
+
+run "test_no_random_string_when_no_truncation" {
+  variables {
+    group = "drape"
+    env   = "prd"
+  }
+
+  assert {
+    condition     = output.id_truncated_hash == output.id_full
+    error_message = "id_truncated_hash should equal id_full when no truncation needed"
   }
 }

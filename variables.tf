@@ -14,7 +14,7 @@ variable "group" {
     name or an abbreviation
   EOT
   validation {
-    condition     = var.group == null || var.group == "" || can(regex("^[0-9|A-Z|a-z|-]+$", var.group))
+    condition     = var.group == null || var.group == "" || can(regex("^[0-9A-Za-z-]+$", var.group))
     error_message = "Value can only be alphanumeric and hyphens."
   }
 }
@@ -29,7 +29,7 @@ variable "tenant" {
     in sandboxes.
   EOT
   validation {
-    condition     = var.tenant == null || var.tenant == "" || can(regex("^[0-9|A-Z|a-z|-]+$", var.tenant))
+    condition     = var.tenant == null || var.tenant == "" || can(regex("^[0-9A-Za-z-]+$", var.tenant))
     error_message = "Value can only be alphanumeric and hyphens."
   }
 }
@@ -42,7 +42,7 @@ variable "env" {
     Should be the type of environment for the resource (prd, stg, dev, prf, sec)
   EOT
   validation {
-    condition     = var.env == null || var.env == "" || can(regex("^[0-9|A-Z|a-z|-]+$", var.env))
+    condition     = var.env == null || var.env == "" || can(regex("^[0-9A-Za-z-]+$", var.env))
     error_message = "Value can only be alphanumeric and hyphens."
   }
 }
@@ -56,7 +56,7 @@ variable "scope" {
     environment
   EOT
   validation {
-    condition     = var.scope == null || var.scope == "" || can(regex("^[0-9|A-Z|a-z|-]+$", var.scope))
+    condition     = var.scope == null || var.scope == "" || can(regex("^[0-9A-Za-z-]+$", var.scope))
     error_message = "Value can only be alphanumeric and hyphens."
   }
 }
@@ -109,13 +109,31 @@ variable "max_id_length" {
     EOT
 }
 
+variable "delimiter" {
+  type        = string
+  default     = "-"
+  description = <<-EOT
+    Delimiter to use between ID parts.  Defaults to a hyphen.
+    EOT
+  validation {
+    condition     = length(var.delimiter) >= 1 && length(var.delimiter) <= 3
+    error_message = "Delimiter must be between 1 and 3 characters."
+  }
+}
+
 variable "tag_key_case" {
   type        = string
-  default     = "lower"
+  default     = null
+  nullable    = true
   description = <<-EOT
     Since cloud providers tags are not case-insensitive we should enforce a
-    consistent casing for all keys.
+    consistent casing for all keys.  Defaults to "lower" when not set via
+    variable or context.
     EOT
+  validation {
+    condition     = var.tag_key_case == null || try(contains(["lower", "upper", "title"], var.tag_key_case), false)
+    error_message = "Value must be one of: lower, upper, title."
+  }
 }
 
 variable "tag_value_case" {
@@ -124,6 +142,10 @@ variable "tag_value_case" {
   nullable    = true
   description = <<-EOT
     Since cloud providers tags are not case-insensitive we should enforce a
-    consistent casing for all values.
+    consistent casing for all values.  Set to null to preserve original casing.
     EOT
+  validation {
+    condition     = var.tag_value_case == null || try(contains(["lower", "upper", "title"], var.tag_value_case), false)
+    error_message = "Value must be one of: lower, upper, title."
+  }
 }

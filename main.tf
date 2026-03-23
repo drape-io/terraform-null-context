@@ -6,6 +6,7 @@ locals {
     stg = "staging"
     dev = "development"
     prf = "performance"
+    sbx = "sandbox"
     sec = "security"
   }
 

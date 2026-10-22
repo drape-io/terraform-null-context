@@ -29,63 +29,72 @@ locals {
   tenant     = var.tenant != null ? var.tenant : (var.context.tenant != null ? var.context.tenant : "")
   env        = var.env != null ? var.env : (var.context.env != null ? var.context.env : "")
   scope      = var.scope != null ? var.scope : (var.context.scope != null ? var.context.scope : "")
-  tags       = coalesce(var.tags, var.context.tags, {})
   attributes = join(local.delimiter, local.attributes_list)
 
-  parts_order = ["group", "tenant", "env", "scope", "attributes"]
-
-  formatted = {
-    group      = local.group
-    tenant     = local.tenant
-    env        = local.env
-    scope      = local.scope
-    attributes = local.attributes
-  }
-
-  provided_parts = [
-    for p in local.parts_order : local.formatted[p] if length(local.formatted[p]) > 0
-  ]
+  provided_parts = compact([local.group, local.tenant, local.env, local.scope, local.attributes])
 
   id_full        = join(local.delimiter, local.provided_parts)
   id_slash_full  = join("/", local.provided_parts)
   id_full_length = length(local.id_full)
 
-  # The env tag key becomes "environment" and its value expands through
-  # env_full_names.
-  tags_order = ["group", "tenant", "env", "scope"]
-  generated_tags = merge(
-    {
-      for t in local.tags_order :
-      t == "env" ? "environment" : t =>
-      t == "env" ? lookup(local.env_full_names, local.formatted[t], local.formatted[t]) : local.formatted[t]
-    },
-    local.tags,
-    {
-      "managed-by" : "terraform"
-    }
-  )
-
-  formatted_tags = {
-    for k, v in local.generated_tags :
-    local.tag_key_case == "lower" ? lower(k) :
-    local.tag_key_case == "upper" ? upper(k) :
-    # title() leaves mixed case like `FOOsBAR` as is, so lower first.
-    local.tag_key_case == "title" ? title(lower(k)) : k
-    =>
-    local.tag_value_case == "lower" ? lower(v) :
-    local.tag_value_case == "upper" ? upper(v) :
-    local.tag_value_case == "title" ? title(v) :
-    v
-    # S3 buckets store no tags if any tag value is empty.
-    if v != ""
+  # Tags in increasing precedence: tags inherited through context, tags
+  # generated from the ID parts (empty parts are skipped so they do not hide
+  # inherited values), tags set on this module, then managed-by. Keys are cased
+  # before they are combined, so inherited keys that are already cased match
+  # the generated ones. The env value expands through env_full_names.
+  generated_tags = {
+    group       = local.group
+    tenant      = local.tenant
+    environment = lookup(local.env_full_names, lower(local.env), local.env)
+    scope       = local.scope
   }
 
-  # Only create the random hash (and its state) when the ID exceeds
-  # max_id_length.
-  hash_length       = 8
-  needs_truncation  = local.id_full_length > var.max_id_length
-  id_truncated      = local.needs_truncation ? substr(local.id_full, 0, var.max_id_length - local.hash_length) : local.id_full
-  id_truncated_hash = local.needs_truncation ? "${local.id_truncated}${local.delimiter}${join("", random_string.hash_for_id[*].id)}" : local.id_full
+  tag_pairs = concat(
+    [for k, v in coalesce(var.context.tags, {}) : { k = k, v = v }],
+    [for k, v in local.generated_tags : { k = k, v = v } if v != ""],
+    [for k, v in coalesce(var.tags, {}) : { k = k, v = v }],
+    [{ k = "managed-by", v = "terraform" }],
+  )
+
+  # Group by cased key. Each group keeps list order, so the last value has the
+  # highest precedence.
+  cased_tags = {
+    for p in local.tag_pairs :
+    local.tag_key_case == "lower" ? lower(p.k) :
+    local.tag_key_case == "upper" ? upper(p.k) :
+    # title() leaves mixed case like `FOOsBAR` as is, so lower first.
+    local.tag_key_case == "title" ? title(lower(p.k)) : p.k
+    => p.v...
+  }
+
+  formatted_tags = {
+    for k, vs in local.cased_tags :
+    k =>
+    local.tag_value_case == "lower" ? lower(vs[length(vs) - 1]) :
+    local.tag_value_case == "upper" ? upper(vs[length(vs) - 1]) :
+    local.tag_value_case == "title" ? title(vs[length(vs) - 1]) :
+    vs[length(vs) - 1]
+    # S3 buckets store no tags if any tag value is empty. Null values are
+    # dropped too.
+    if vs[length(vs) - 1] != null && vs[length(vs) - 1] != ""
+  }
+
+  # The hash is the start of sha256(id_full), so the same ID always gets the
+  # same suffix. A trailing delimiter is trimmed from the truncated part, and
+  # the hash grows to keep the total at max_id_length.
+  hash_length      = 8
+  needs_truncation = local.id_full_length > var.max_id_length
+  id_truncated = (
+    local.needs_truncation
+    ? replace(substr(local.id_full, 0, var.max_id_length - local.hash_length), "/[-_.]+$/", "")
+    : local.id_full
+  )
+  hash_suffix = substr(
+    sha256(local.id_full),
+    0,
+    min(64, var.max_id_length - length(local.id_truncated) - length(local.delimiter)),
+  )
+  id_truncated_hash = local.needs_truncation ? "${local.id_truncated}${local.delimiter}${local.hash_suffix}" : local.id_full
 
   # Canonical context object. The outputs read from this directly.
   context = {
@@ -104,16 +113,6 @@ locals {
 check "validate_id_parts" {
   assert {
     condition     = local.id_full_length > 0
-    error_message = "Please provide at least one id part variable: ${join(",", local.parts_order)}"
+    error_message = "Please provide at least one id part variable: group,tenant,env,scope,attributes"
   }
-}
-
-resource "random_string" "hash_for_id" {
-  count = local.enabled && local.needs_truncation ? 1 : 0
-
-  keepers = {
-    full_id = local.id_full
-  }
-  length  = local.hash_length - length(local.delimiter)
-  special = false
 }

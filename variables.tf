@@ -67,6 +67,12 @@ variable "attributes" {
   description = <<-EOT
     Extra values to append to the end of the ID to make it unique.
     EOT
+  validation {
+    condition = alltrue([
+      for a in coalesce(var.attributes, []) : a == null ? true : can(regex("^[0-9A-Za-z-]*$", a))
+    ])
+    error_message = "Attributes can only be alphanumeric and hyphens."
+  }
 }
 
 variable "tags" {
@@ -97,6 +103,15 @@ variable "context" {
     `context` output. Variables set on this module override its values, except
     attributes, which the module combines.
   EOT
+  validation {
+    condition = alltrue([
+      for v in concat(
+        [var.context.group, var.context.tenant, var.context.env, var.context.scope],
+        coalesce(var.context.attributes, []),
+      ) : v == null ? true : can(regex("^[0-9A-Za-z-]*$", v))
+    ])
+    error_message = "Context group, tenant, env, scope and attributes can only be alphanumeric and hyphens."
+  }
 }
 
 variable "max_id_length" {
@@ -105,18 +120,24 @@ variable "max_id_length" {
   description = <<-EOT
     The maximum length of `id_truncated_hash`. When the ID is longer, the module
     truncates it and adds a hash suffix. For example, use 63 for S3 bucket names.
+    Must be a whole number greater than 8.
     EOT
+  validation {
+    condition     = var.max_id_length > 8 && floor(var.max_id_length) == var.max_id_length
+    error_message = "max_id_length must be a whole number greater than 8, the length of the hash suffix."
+  }
 }
 
 variable "delimiter" {
   type        = string
   default     = "-"
   description = <<-EOT
-    Delimiter to use between ID parts.  Defaults to a hyphen.
+    Delimiter to use between ID parts: 1 to 3 of the characters `-`, `_` and
+    `.`. Defaults to a hyphen.
     EOT
   validation {
-    condition     = length(var.delimiter) >= 1 && length(var.delimiter) <= 3
-    error_message = "Delimiter must be between 1 and 3 characters."
+    condition     = can(regex("^[-_.]{1,3}$", var.delimiter))
+    error_message = "Delimiter must be 1 to 3 of the characters -, _ and ."
   }
 }
 

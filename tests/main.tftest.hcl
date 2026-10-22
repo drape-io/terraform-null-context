@@ -463,3 +463,192 @@ run "test_no_random_string_when_no_truncation" {
     error_message = "id_truncated_hash should equal id_full when no truncation needed"
   }
 }
+# Ordinary inputs must keep producing the same names and tags.
+run "test_pinned_env_scope" {
+  variables {
+    env   = "prd"
+    scope = "app"
+  }
+
+  assert {
+    condition     = output.id_full == "prd-app" && output.id_slash_full == "prd/app"
+    error_message = "id changed: ${output.id_full} ${output.id_slash_full}"
+  }
+
+  assert {
+    condition     = output.tags == tomap({ environment = "production", scope = "app", managed-by = "terraform" })
+    error_message = "tags changed: ${jsonencode(output.tags)}"
+  }
+}
+
+run "test_pinned_tenant_env" {
+  variables {
+    env    = "sbx"
+    tenant = "sontek"
+  }
+
+  assert {
+    condition     = output.id_full == "sontek-sbx" && output.id_slash_full == "sontek/sbx"
+    error_message = "id changed: ${output.id_full} ${output.id_slash_full}"
+  }
+
+  assert {
+    condition     = output.tags == tomap({ tenant = "sontek", environment = "sandbox", managed-by = "terraform" })
+    error_message = "tags changed: ${jsonencode(output.tags)}"
+  }
+}
+
+run "test_pinned_group_env_scope" {
+  variables {
+    group = "drp"
+    env   = "mgmt"
+    scope = "bootstrap"
+  }
+
+  assert {
+    condition     = output.id_full == "drp-mgmt-bootstrap" && output.id_slash_full == "drp/mgmt/bootstrap"
+    error_message = "id changed: ${output.id_full} ${output.id_slash_full}"
+  }
+
+  assert {
+    condition     = output.tags == tomap({ group = "drp", environment = "mgmt", scope = "bootstrap", managed-by = "terraform" })
+    error_message = "tags changed: ${jsonencode(output.tags)}"
+  }
+}
+
+run "test_hash_is_deterministic_and_lowercase" {
+  variables {
+    group         = "groupy-mcgrouperson-abcdefghijklmnopqrstuvwxyz"
+    tenant        = "customer-mccustomerson-abcdefghijklmnopqrstuvwxyz"
+    max_id_length = 63
+  }
+
+  assert {
+    condition     = output.id_truncated_hash == "${output.id_truncated}-${substr(sha256(output.id_full), 0, 7)}"
+    error_message = "hash suffix should be the start of sha256(id_full): ${output.id_truncated_hash}"
+  }
+
+  assert {
+    condition     = can(regex("^[a-z0-9-]{63}$", output.id_truncated_hash))
+    error_message = "id_truncated_hash should be 63 lowercase chars: ${output.id_truncated_hash}"
+  }
+}
+
+run "test_truncation_trims_trailing_delimiter" {
+  variables {
+    group         = "aaaaaaaaa"
+    tenant        = "bbbbbbbbb"
+    max_id_length = 18
+  }
+
+  assert {
+    condition     = output.id_truncated == "aaaaaaaaa"
+    error_message = "trailing delimiter should be trimmed: ${output.id_truncated}"
+  }
+
+  assert {
+    condition     = length(output.id_truncated_hash) == 18 && !strcontains(output.id_truncated_hash, "--")
+    error_message = "hash should fill the trimmed char: ${output.id_truncated_hash}"
+  }
+}
+
+run "test_env_shorthand_any_case" {
+  variables {
+    env = "PRD"
+  }
+
+  assert {
+    condition     = output.tags["environment"] == "production"
+    error_message = "PRD should expand to production"
+  }
+}
+
+run "test_child_of_upper_case_parent" {
+  variables {
+    env = "prd"
+    context = {
+      group        = "drape"
+      tag_key_case = "upper"
+      tags = {
+        GROUP        = "DRAPE"
+        ENVIRONMENT  = "DEVELOPMENT"
+        "MANAGED-BY" = "TERRAFORM"
+      }
+    }
+  }
+
+  assert {
+    condition     = output.tags["GROUP"] == "drape" && output.tags["ENVIRONMENT"] == "production"
+    error_message = "child parts should win over inherited tags: ${jsonencode(output.tags)}"
+  }
+}
+
+run "test_child_tags_merge_with_inherited" {
+  variables {
+    group = "drape"
+    tags  = { team = "x" }
+    context = {
+      tags = { owner = "sre", environment = "development" }
+    }
+  }
+
+  assert {
+    condition     = output.tags["owner"] == "sre" && output.tags["team"] == "x" && output.tags["environment"] == "development"
+    error_message = "inherited and own tags should both be kept: ${jsonencode(output.tags)}"
+  }
+}
+
+run "test_user_tag_overrides_generated_key_in_other_case" {
+  variables {
+    env  = "prd"
+    tags = { Environment = "Prod", owner = null }
+  }
+
+  assert {
+    condition     = output.tags["environment"] == "prod" && !contains(keys(output.tags), "owner")
+    error_message = "user tag should win and null tags should be dropped: ${jsonencode(output.tags)}"
+  }
+}
+
+run "test_max_id_length_lower_bound" {
+  command = plan
+
+  variables {
+    group         = "drape"
+    max_id_length = 8
+  }
+
+  expect_failures = [var.max_id_length]
+}
+
+run "test_delimiter_allow_list" {
+  command = plan
+
+  variables {
+    group     = "drape"
+    delimiter = "/"
+  }
+
+  expect_failures = [var.delimiter]
+}
+
+run "test_context_parts_validated" {
+  command = plan
+
+  variables {
+    context = { tenant = "acme/prd" }
+  }
+
+  expect_failures = [var.context]
+}
+
+run "test_attributes_validated" {
+  command = plan
+
+  variables {
+    group      = "drape"
+    attributes = ["prd/k8s"]
+  }
+
+  expect_failures = [var.attributes]
+}

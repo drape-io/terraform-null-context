@@ -14,7 +14,7 @@ variable "group" {
     name or an abbreviation
   EOT
   validation {
-    condition     = var.group == null || var.group == "" || can(regex("^[0-9A-Za-z-]+$", var.group))
+    condition     = var.group == null || can(regex("^[0-9A-Za-z-]*$", var.group))
     error_message = "Value can only be alphanumeric and hyphens."
   }
 }
@@ -29,7 +29,7 @@ variable "tenant" {
     in sandboxes.
   EOT
   validation {
-    condition     = var.tenant == null || var.tenant == "" || can(regex("^[0-9A-Za-z-]+$", var.tenant))
+    condition     = var.tenant == null || can(regex("^[0-9A-Za-z-]*$", var.tenant))
     error_message = "Value can only be alphanumeric and hyphens."
   }
 }
@@ -42,7 +42,7 @@ variable "env" {
     Should be the type of environment for the resource (prd, stg, dev, prf, sbx, sec)
   EOT
   validation {
-    condition     = var.env == null || var.env == "" || can(regex("^[0-9A-Za-z-]+$", var.env))
+    condition     = var.env == null || can(regex("^[0-9A-Za-z-]*$", var.env))
     error_message = "Value can only be alphanumeric and hyphens."
   }
 }
@@ -56,7 +56,7 @@ variable "scope" {
     environment
   EOT
   validation {
-    condition     = var.scope == null || var.scope == "" || can(regex("^[0-9A-Za-z-]+$", var.scope))
+    condition     = var.scope == null || can(regex("^[0-9A-Za-z-]*$", var.scope))
     error_message = "Value can only be alphanumeric and hyphens."
   }
 }

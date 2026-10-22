@@ -73,8 +73,7 @@ run "test_id_slash_full" {
   }
 }
 
-
-run "test_too_long_of_id_fourty" {
+run "test_too_long_of_id_forty" {
   variables {
     group         = "groupy-mcgrouperson-abcdefghijklmnopqrstuvwxyz"
     tenant        = "customer-mccustomerson-abcdefghijklmnopqrstuvwxyz"
@@ -85,7 +84,7 @@ run "test_too_long_of_id_fourty" {
 
   assert {
     condition     = length(output.id_truncated_hash) == 40
-    error_message = "Truncation to fourty works"
+    error_message = "Truncation to forty works"
   }
 
   assert {

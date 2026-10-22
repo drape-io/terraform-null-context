@@ -38,9 +38,8 @@ output "tags" {
   description = "Tags for the context"
 }
 
-# The context output always passes through regardless of the enabled flag.
-# This allows a disabled parent module's naming context to be reused by child
-# modules that may independently control their own enabled state.
+# Not gated on enabled, so a disabled parent can still pass its naming context
+# to child modules that set their own enabled flag.
 output "context" {
   value       = local.context
   description = "The full context object if you want to pass it to another module"

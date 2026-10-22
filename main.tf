@@ -18,10 +18,8 @@ locals {
     )
   ))
 
-  # Falls back to context, then "lower".
   tag_key_case = coalesce(var.tag_key_case, var.context.tag_key_case, "lower")
-  # tag_value_case: null is a valid value meaning "no transformation", so we
-  # cannot use coalesce (it would skip null and apply a default instead)
+  # null means "no transformation", so coalesce (which skips null) can't be used.
   tag_value_case = var.tag_value_case != null ? var.tag_value_case : var.context.tag_value_case
 
   # Variables take precedence over context when non-null. The string parts
@@ -71,16 +69,14 @@ locals {
     for k, v in local.generated_tags :
     local.tag_key_case == "lower" ? lower(k) :
     local.tag_key_case == "upper" ? upper(k) :
-    # Mixed casing like `FOOsBAR` doesn't let title work properly, so we lower
-    # first to be consistent
+    # title() leaves mixed case like `FOOsBAR` as is, so lower first.
     local.tag_key_case == "title" ? title(lower(k)) : k
     =>
     local.tag_value_case == "lower" ? lower(v) :
     local.tag_value_case == "upper" ? upper(v) :
     local.tag_value_case == "title" ? title(v) :
     v
-    # S3 Buckets will not store any tags in the map if one of them has
-    # an empty value
+    # S3 buckets store no tags if any tag value is empty.
     if v != ""
   }
 

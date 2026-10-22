@@ -131,7 +131,7 @@ variable "tag_key_case" {
     variable or context.
     EOT
   validation {
-    condition     = var.tag_key_case == null || try(contains(["lower", "upper", "title"], var.tag_key_case), false)
+    condition     = var.tag_key_case == null ? true : contains(["lower", "upper", "title"], var.tag_key_case)
     error_message = "Value must be one of: lower, upper, title."
   }
 }
@@ -145,7 +145,7 @@ variable "tag_value_case" {
     consistent casing for all values.  Set to null to preserve original casing.
     EOT
   validation {
-    condition     = var.tag_value_case == null || try(contains(["lower", "upper", "title"], var.tag_value_case), false)
+    condition     = var.tag_value_case == null ? true : contains(["lower", "upper", "title"], var.tag_value_case)
     error_message = "Value must be one of: lower, upper, title."
   }
 }

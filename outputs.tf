@@ -25,7 +25,7 @@ output "id_slash_full" {
 
 output "id_truncated" {
   value       = local.context.enabled ? local.id_truncated : ""
-  description = "The full ID truncated to `max_id_length` chars, leaving 8 for a hash"
+  description = "The full ID truncated to `max_id_length` minus 8 chars, leaving room for the hash suffix"
 }
 
 output "id_truncated_hash" {

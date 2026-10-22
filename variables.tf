@@ -39,7 +39,7 @@ variable "env" {
   default     = null
   nullable    = true
   description = <<-EOT
-    Should be the type of environment for the resource (prd, stg, dev, prf, sec)
+    Should be the type of environment for the resource (prd, stg, dev, prf, sbx, sec)
   EOT
   validation {
     condition     = var.env == null || var.env == "" || can(regex("^[0-9A-Za-z-]+$", var.env))

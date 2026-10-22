@@ -97,9 +97,7 @@ locals {
   id_truncated         = substr(local.id_full, 0, local.id_full_length - local.id_truncation_length)
   id_truncated_hash    = local.needs_truncation ? "${local.id_truncated}${local.delimiter}${join("", random_string.hash_for_id[*].id)}" : local.id_full
 
-  # Canonical context object — single source of truth.  The outputs reference
-  # this directly, eliminating the prior duplication between return.* and
-  # return.context.*.
+  # Canonical context object. The outputs read from this directly.
   context = {
     enabled        = local.enabled
     group          = local.group

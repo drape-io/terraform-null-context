@@ -1,6 +1,6 @@
 output "enabled" {
   value       = local.context.enabled
-  description = "If it was enabled or not"
+  description = "Whether the module is enabled"
 }
 
 output "group" {
@@ -20,7 +20,7 @@ output "id_full" {
 
 output "id_slash_full" {
   value       = local.context.enabled ? local.id_slash_full : ""
-  description = "The full ID with slashes"
+  description = "The ID with `/` between the parts"
 }
 
 output "id_truncated" {
@@ -30,17 +30,17 @@ output "id_truncated" {
 
 output "id_truncated_hash" {
   value       = local.context.enabled ? local.id_truncated_hash : ""
-  description = "The full ID truncated with a hash"
+  description = "The ID, truncated to `max_id_length` with a hash suffix when it is longer"
 }
 
 output "tags" {
   value       = local.context.enabled ? local.context.tags : {}
-  description = "Tags for the context"
+  description = "The generated tags"
 }
 
 # Not gated on enabled, so a disabled parent can still pass its naming context
 # to child modules that set their own enabled flag.
 output "context" {
   value       = local.context
-  description = "The full context object if you want to pass it to another module"
+  description = "The context object to pass to another instance of this module"
 }

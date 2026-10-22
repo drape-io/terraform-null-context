@@ -65,8 +65,7 @@ variable "attributes" {
   type        = list(string)
   default     = []
   description = <<-EOT
-    Additional attributes can be added to create more uniqueness when in the ID.
-    They are appended to the end of the ID.
+    Extra values to append to the end of the ID to make it unique.
     EOT
 }
 
@@ -94,8 +93,9 @@ variable "context" {
   })
   default     = {}
   description = <<-EOT
-    Used to pass an object of any of the variables used to this module.  It is
-    used to seed the module with labels from another context.
+    A context object from another instance of this module, usually its
+    `context` output. Variables set on this module override its values, except
+    attributes, which the module combines.
   EOT
 }
 
@@ -103,9 +103,8 @@ variable "max_id_length" {
   type        = number
   default     = 255
   description = <<-EOT
-    This will define a max length we want for the generated ID and then generate
-    a truncated one with a hash.  For example if you are generating S3 buckets
-    you will want to limit it to 63 characters.
+    The maximum length of `id_truncated_hash`. When the ID is longer, the module
+    truncates it and adds a hash suffix. For example, use 63 for S3 bucket names.
     EOT
 }
 
@@ -126,9 +125,9 @@ variable "tag_key_case" {
   default     = null
   nullable    = true
   description = <<-EOT
-    Since cloud providers tags are not case-insensitive we should enforce a
-    consistent casing for all keys.  Defaults to "lower" when not set via
-    variable or context.
+    The case for tag keys: lower, upper or title. Cloud provider tag keys are
+    case-sensitive, so one case for all keys avoids duplicates. Defaults to
+    "lower" when neither this variable nor the context sets it.
     EOT
   validation {
     condition     = var.tag_key_case == null ? true : contains(["lower", "upper", "title"], var.tag_key_case)
@@ -141,8 +140,8 @@ variable "tag_value_case" {
   default     = "lower"
   nullable    = true
   description = <<-EOT
-    Since cloud providers tags are not case-insensitive we should enforce a
-    consistent casing for all values.  Set to null to preserve original casing.
+    The case for tag values: lower, upper or title. Set to null to keep the
+    original case.
     EOT
   validation {
     condition     = var.tag_value_case == null ? true : contains(["lower", "upper", "title"], var.tag_value_case)

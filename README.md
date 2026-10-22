@@ -1,6 +1,5 @@
 # terraform-null-context
-A utility module for managing naming and tagging of resources through a shared
-context.
+A Terraform module that names and tags resources from a shared context.
 
 [Terraform Registry](https://registry.terraform.io/modules/drape-io/context/null/latest)
 
@@ -39,14 +38,13 @@ The module joins them in this order with the delimiter (`-` by default):
 {group}-{tenant}-{env}-{scope}-{attributes}
 ```
 
-Every part is optional and empty parts are skipped. If no part is set, the ID
-is empty and Terraform reports a failed check as a warning. Attributes are
-joined with the delimiter.
+Every part is optional, and the module skips empty parts. It also joins the
+attributes with the delimiter. If you set no part, the ID is empty and
+Terraform shows the failed check as a warning.
 
-The module validates that `group`, `tenant`, `env` and `scope` contain only
-letters, digits and hyphens when you pass them as variables. It does not
-validate values passed through `context`, the `attributes` list, or the ID
-length. It does not change the case of the ID.
+When you pass `group`, `tenant`, `env` or `scope` as a variable, the module
+checks that it contains only letters, digits and hyphens. It does not check
+values in `context`, the `attributes` list, or the ID length. It does not change the case of the ID.
 
 For names that work across most AWS services, use this convention:
 
@@ -68,7 +66,7 @@ Examples:
     ```
 
 ## AWS Limits
-This module is not specific to AWS, but these name limits help guide the
+This module is not specific to AWS. These AWS name limits guide the
 convention:
 
 - 63 (S3 bucket, RDS instance identifier)
@@ -132,16 +130,16 @@ alias/drape/sontek/dev/lambda
 
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:--------:|
-| <a name="input_attributes"></a> [attributes](#input\_attributes) | Additional attributes can be added to create more uniqueness when in the ID.<br>They are appended to the end of the ID. | `list(string)` | `[]` | no |
-| <a name="input_context"></a> [context](#input\_context) | Used to pass an object of any of the variables used to this module.  It is<br>used to seed the module with labels from another context. | <pre>object({<br>    enabled        = optional(bool)<br>    group          = optional(string)<br>    tenant         = optional(string)<br>    env            = optional(string)<br>    scope          = optional(string)<br>    attributes     = optional(list(string))<br>    tags           = optional(map(string))<br>    tag_key_case   = optional(string)<br>    tag_value_case = optional(string)<br>  })</pre> | `{}` | no |
+| <a name="input_attributes"></a> [attributes](#input\_attributes) | Extra values to append to the end of the ID to make it unique. | `list(string)` | `[]` | no |
+| <a name="input_context"></a> [context](#input\_context) | A context object from another instance of this module, usually its<br>`context` output. Variables set on this module override its values, except<br>attributes, which the module combines. | <pre>object({<br>    enabled        = optional(bool)<br>    group          = optional(string)<br>    tenant         = optional(string)<br>    env            = optional(string)<br>    scope          = optional(string)<br>    attributes     = optional(list(string))<br>    tags           = optional(map(string))<br>    tag_key_case   = optional(string)<br>    tag_value_case = optional(string)<br>  })</pre> | `{}` | no |
 | <a name="input_delimiter"></a> [delimiter](#input\_delimiter) | Delimiter to use between ID parts.  Defaults to a hyphen. | `string` | `"-"` | no |
 | <a name="input_enabled"></a> [enabled](#input\_enabled) | Prevent the module from creating any resources if disabled. | `bool` | `null` | no |
 | <a name="input_env"></a> [env](#input\_env) | Should be the type of environment for the resource (prd, stg, dev, prf, sbx, sec) | `string` | `null` | no |
 | <a name="input_group"></a> [group](#input\_group) | A unique identifier for your resources.  This could be your organization<br>name or an abbreviation | `string` | `null` | no |
-| <a name="input_max_id_length"></a> [max\_id\_length](#input\_max\_id\_length) | This will define a max length we want for the generated ID and then generate<br>a truncated one with a hash.  For example if you are generating S3 buckets<br>you will want to limit it to 63 characters. | `number` | `255` | no |
+| <a name="input_max_id_length"></a> [max\_id\_length](#input\_max\_id\_length) | The maximum length of `id_truncated_hash`. When the ID is longer, the module<br>truncates it and adds a hash suffix. For example, use 63 for S3 bucket names. | `number` | `255` | no |
 | <a name="input_scope"></a> [scope](#input\_scope) | Scope down the resource to a specific application or service in your<br>environment | `string` | `null` | no |
-| <a name="input_tag_key_case"></a> [tag\_key\_case](#input\_tag\_key\_case) | Since cloud providers tags are not case-insensitive we should enforce a<br>consistent casing for all keys.  Defaults to "lower" when not set via<br>variable or context. | `string` | `null` | no |
-| <a name="input_tag_value_case"></a> [tag\_value\_case](#input\_tag\_value\_case) | Since cloud providers tags are not case-insensitive we should enforce a<br>consistent casing for all values.  Set to null to preserve original casing. | `string` | `"lower"` | no |
+| <a name="input_tag_key_case"></a> [tag\_key\_case](#input\_tag\_key\_case) | The case for tag keys: lower, upper or title. Cloud provider tag keys are<br>case-sensitive, so one case for all keys avoids duplicates. Defaults to<br>"lower" when neither this variable nor the context sets it. | `string` | `null` | no |
+| <a name="input_tag_value_case"></a> [tag\_value\_case](#input\_tag\_value\_case) | The case for tag values: lower, upper or title. Set to null to keep the<br>original case. | `string` | `"lower"` | no |
 | <a name="input_tags"></a> [tags](#input\_tags) | Define tags on the context so they can be used on each resource.<br>(For Example: `{'Owner': 'group-sre@test.com'}`) | `map(string)` | `null` | no |
 | <a name="input_tenant"></a> [tenant](#input\_tenant) | In a multi-tenant environment you can use this to identify which resources<br>go where. You can also use this to link resources to individual developers<br>in sandboxes. | `string` | `null` | no |
 
@@ -149,13 +147,13 @@ alias/drape/sontek/dev/lambda
 
 | Name | Description |
 |------|-------------|
-| <a name="output_context"></a> [context](#output\_context) | The full context object if you want to pass it to another module |
-| <a name="output_enabled"></a> [enabled](#output\_enabled) | If it was enabled or not |
+| <a name="output_context"></a> [context](#output\_context) | The context object to pass to another instance of this module |
+| <a name="output_enabled"></a> [enabled](#output\_enabled) | Whether the module is enabled |
 | <a name="output_group"></a> [group](#output\_group) | The defined group |
 | <a name="output_id_full"></a> [id\_full](#output\_id\_full) | The full ID |
-| <a name="output_id_slash_full"></a> [id\_slash\_full](#output\_id\_slash\_full) | The full ID with slashes |
+| <a name="output_id_slash_full"></a> [id\_slash\_full](#output\_id\_slash\_full) | The ID with `/` between the parts |
 | <a name="output_id_truncated"></a> [id\_truncated](#output\_id\_truncated) | The full ID truncated to `max_id_length` minus 8 chars, leaving room for the hash suffix |
-| <a name="output_id_truncated_hash"></a> [id\_truncated\_hash](#output\_id\_truncated\_hash) | The full ID truncated with a hash |
-| <a name="output_tags"></a> [tags](#output\_tags) | Tags for the context |
+| <a name="output_id_truncated_hash"></a> [id\_truncated\_hash](#output\_id\_truncated\_hash) | The ID, truncated to `max_id_length` with a hash suffix when it is longer |
+| <a name="output_tags"></a> [tags](#output\_tags) | The generated tags |
 | <a name="output_tenant"></a> [tenant](#output\_tenant) | The defined tenant |
 <!-- END_TF_DOCS -->

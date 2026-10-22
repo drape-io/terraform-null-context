@@ -87,6 +87,16 @@ run "test_too_long_of_id_fourty" {
     condition     = length(output.id_truncated_hash) == 40
     error_message = "Truncation to fourty works"
   }
+
+  assert {
+    condition     = startswith(output.id_truncated_hash, output.id_truncated)
+    error_message = "id_truncated_hash should start with id_truncated"
+  }
+
+  assert {
+    condition     = length(output.id_truncated) == 40 - 8
+    error_message = "id_truncated should leave 8 chars for the hash suffix"
+  }
 }
 
 run "test_too_long_of_id_one_twenty" {
@@ -101,6 +111,16 @@ run "test_too_long_of_id_one_twenty" {
   assert {
     condition     = length(output.id_truncated_hash) == 120
     error_message = "Truncation to one twenty works"
+  }
+
+  assert {
+    condition     = startswith(output.id_truncated_hash, output.id_truncated)
+    error_message = "id_truncated_hash should start with id_truncated"
+  }
+
+  assert {
+    condition     = length(output.id_truncated) == 120 - 8
+    error_message = "id_truncated should leave 8 chars for the hash suffix"
   }
 }
 

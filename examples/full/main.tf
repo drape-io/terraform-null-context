@@ -21,5 +21,5 @@ module "secondary" {
 
 output "context" {
   value       = module.full.context
-  description = "Tags for the context"
+  description = "The full context object"
 }
